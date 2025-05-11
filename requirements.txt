@@ -14,4 +14,4 @@ wtforms>=3.2.1
 cryptography>=44.0.3
 flask-migrate>=4.1.0
 alembic>=1.15.2
-
+python-dotenv
