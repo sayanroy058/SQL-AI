@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %} - Connect Database{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary">
+                <h3 class="mb-0">Connect to Database</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('db_bp.connect_db') }}" id="connectionForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id }}" class="form-label">{{ form.name.label }}</label>
+                        {{ form.name(class="form-control", placeholder="Enter a name for this connection") }}
+                        {% if form.name.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.name.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.db_type.id }}" class="form-label">{{ form.db_type.label }}</label>
+                        {{ form.db_type(class="form-select", id="dbTypeSelect") }}
+                        {% if form.db_type.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.db_type.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text text-muted small">
+                            <i class="bi bi-info-circle"></i>
+                            PostgreSQL is available in this Replit environment.
+                            MySQL requires external database server access.
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="{{ form.host.id }}" class="form-label">{{ form.host.label }}</label>
+                            {{ form.host(class="form-control", placeholder="Enter hostname or IP address") }}
+                            {% if form.host.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.host.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.port.id }}" class="form-label">{{ form.port.label }}</label>
+                            {{ form.port(class="form-control") }}
+                            {% if form.port.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.port.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.username.id }}" class="form-label">{{ form.username.label }}</label>
+                        {{ form.username(class="form-control", placeholder="Enter database username") }}
+                        {% if form.username.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.username.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password.id }}" class="form-label">{{ form.password.label }}</label>
+                        {{ form.password(class="form-control", placeholder="Enter database password") }}
+                        {% if form.password.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.password.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.database_name.id }}" class="form-label">{{ form.database_name.label }}</label>
+                        {{ form.database_name(class="form-control", placeholder="Enter database name") }}
+                        {% if form.database_name.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.database_name.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" id="testConnection" class="btn btn-outline-light">
+                            <i class="bi bi-check-circle"></i> Test Connection
+                        </button>
+                        {{ form.submit(class="btn btn-primary ms-auto") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer border-secondary">
+                <div id="connectionStatus" class="d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status" id="connectionSpinner">
+                            <span class="visually-hidden">Testing connection...</span>
+                        </div>
+                        <span id="connectionMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/connect.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %} - Query Database{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('db_bp.dashboard') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card bg-dark border-secondary sticky-top" style="top: 20px;">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0">
+                    <i class="bi bi-database"></i> {{ connection.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">Database Info</small>
+                    <p class="mb-1"><strong>Host:</strong> {{ connection.host }}</p>
+                    <p class="mb-1"><strong>Database:</strong> {{ connection.database_name }}</p>
+                    <p class="mb-1">
+                        <strong>Type:</strong> 
+                        {% if connection.is_postgresql %}
+                            <span class="badge bg-info">PostgreSQL</span>
+                        {% elif connection.is_mysql %}
+                            <span class="badge bg-primary">MySQL</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ connection.db_type }}</span>
+                        {% endif %}
+                    </p>
+                    <p class="mb-0"><strong>Connected as:</strong> {{ connection.username }}</p>
+                </div>
+                
+                <hr class="border-secondary">
+                
+                <div>
+                    <small class="text-muted d-block mb-1">Recent Queries</small>
+                    <div class="list-group list-group-flush" id="recentQueries">
+                        {% for query in queries[:5] %}
+                        <a href="#query-{{ query.id }}" class="list-group-item list-group-item-action bg-dark border-secondary text-light px-0">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span class="text-truncate">{{ query.natural_language[:40] }}{% if query.natural_language|length > 40 %}...{% endif %}</span>
+                                <small class="text-muted ms-2">{{ query.created_at.strftime('%H:%M') }}</small>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4 bg-dark border-secondary">
+            <div class="card-header border-secondary">
+                <h4 class="mb-0">Ask a question</h4>
+            </div>
+            <div class="card-body">
+                <form id="queryForm" action="{{ url_for('db_bp.query', conn_id=connection.id) }}" method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.query(class="form-control", rows=3, placeholder="e.g., Show me the top 5 customers by revenue for the last month") }}
+                        <small class="text-muted">
+                            Ask a question about your {{ connection.db_type.upper() }} database in plain English. 
+                            The AI will generate the appropriate {{ connection.db_type.upper() }} SQL query for you.
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary" id="submitQuery">
+                            <i class="bi bi-send"></i> Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div id="loadingIndicator" class="text-center my-5 d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Generating {{ connection.db_type.upper() }} query and fetching results...</p>
+            <small class="text-muted">This might take a few seconds as we analyze your database schema.</small>
+        </div>
+        
+        <div id="resultContainer" class="d-none">
+            <div class="card mb-4 bg-dark border-secondary">
+                <div class="card-header d-flex justify-content-between align-items-center border-secondary">
+                    <h5 class="mb-0"><i class="bi bi-braces"></i> SQL Query</h5>
+                    <button class="btn btn-sm btn-outline-light" id="copySql">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-dark border-0 text-light p-0"><code id="sqlQuery" class="text-success"></code></pre>
+                </div>
+            </div>
+            
+            <div class="card mb-4 bg-dark border-secondary">
+                <div class="card-header border-secondary">
+                    <h5 class="mb-0"><i class="bi bi-table"></i> Results</h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultData"></div>
+                </div>
+            </div>
+            
+            <div class="card mb-4 bg-dark border-secondary">
+                <div class="card-header border-secondary">
+                    <h5 class="mb-0"><i class="bi bi-chat-right-text"></i> Explanation</h5>
+                </div>
+                <div class="card-body">
+                    <p id="resultExplanation"></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Previous Queries -->
+        <div id="previousQueries">
+            {% for query in queries %}
+            <div class="card mb-4 bg-dark border-secondary" id="query-{{ query.id }}">
+                <div class="card-header d-flex justify-content-between align-items-center border-secondary">
+                    <h5 class="mb-0">Query from {{ query.created_at.strftime('%b %d, %Y %H:%M') }}</h5>
+                    <div class="badge bg-secondary">{{ loop.index }}</div>
+                </div>
+                <div class="card-body">
+                    <p><strong>Question:</strong> {{ query.natural_language }}</p>
+                    
+                    <div class="mb-3">
+                        <h6>SQL Query:</h6>
+                        <pre class="bg-dark border-0 text-light p-0"><code class="text-success">{{ query.sql_query }}</code></pre>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Result:</h6>
+                        <div class="result-data">
+                            {% if query.result %}
+                                <div class="table-responsive">
+                                    {% set result_data = query.result|from_json %}
+                                    <table class="table table-dark table-striped table-hover">
+                                        {% if result_data and result_data is mapping %}
+                                            <thead>
+                                                <tr>
+                                                    {% for key in result_data.keys() %}
+                                                        <th>{{ key }}</th>
+                                                    {% endfor %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {% for value in result_data.values() %}
+                                                        <td>{{ value if value is not none else 'NULL' }}</td>
+                                                    {% endfor %}
+                                                </tr>
+                                        {% elif result_data and result_data is sequence and result_data|length > 0 %}
+                                            <thead>
+                                                <tr>
+                                                    {% for key in result_data[0].keys() %}
+                                                        <th>{{ key }}</th>
+                                                    {% endfor %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for row in result_data %}
+                                                    <tr>
+                                                        {% for value in row.values() %}
+                                                            <td>{{ value if value is not none else 'NULL' }}</td>
+                                                        {% endfor %}
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        {% endif %}
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No result data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h6>Explanation:</h6>
+                        <p>{{ query.natural_language_result }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/query.js') }}"></script>
+{% endblock %}

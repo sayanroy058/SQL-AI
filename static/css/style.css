@@ -1,0 +1,95 @@
+/* Custom styling for the SQL AI Translator application */
+
+/* Global Styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+/* Form Styling */
+.form-control:focus, .form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Code Styling */
+pre {
+    margin-bottom: 0;
+    overflow-x: auto;
+}
+
+code {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Query Display Styling */
+.user-question {
+    font-weight: 500;
+}
+
+.response {
+    color: #ddd;
+}
+
+/* Results Table Styling */
+.table-dark.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.table-dark {
+    border-color: var(--bs-dark);
+    color: var(--bs-light);
+}
+
+/* Card Styling */
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+.sticky-top {
+    z-index: 10;
+}
+
+/* Loading Spinner Animation */
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+}
+
+#loadingIndicator p {
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Toast Styling */
+.toast-container {
+    z-index: 1050;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .sticky-top {
+        position: relative;
+        top: 0 !important;
+    }
+}

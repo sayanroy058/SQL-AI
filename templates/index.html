@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %} - Welcome{% endblock %}
+
+{% block content %}
+<div class="row align-items-center my-5">
+    <div class="col-lg-6">
+        <h1 class="display-4">Transform Natural Language to SQL</h1>
+        <p class="lead">Ask questions about your database in plain English and get instant SQL queries and results.</p>
+        
+        <div class="my-4">
+            <h4>How it works:</h4>
+            <ol class="list-group list-group-numbered mb-4">
+                <li class="list-group-item bg-dark text-light border-secondary">Connect to your MySQL database</li>
+                <li class="list-group-item bg-dark text-light border-secondary">Ask questions in natural language</li>
+                <li class="list-group-item bg-dark text-light border-secondary">AI generates SQL queries automatically</li>
+                <li class="list-group-item bg-dark text-light border-secondary">View results with plain English explanations</li>
+            </ol>
+        </div>
+
+        <div class="d-flex gap-2">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('db_bp.dashboard') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-database"></i> Go to Dashboard
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-person-plus"></i> Register
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-6 text-center mt-5 mt-lg-0">
+        <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary">
+                <div class="text-start fw-bold">Example</div>
+            </div>
+            <div class="card-body text-start">
+                <p class="user-question">
+                    <i class="bi bi-person-circle text-primary me-2"></i>
+                    <span class="text-light">Find all customers who spent more than $1000 last month</span>
+                </p>
+                <div class="border rounded p-3 mb-3 border-secondary bg-dark">
+                    <p class="mb-2 text-muted"><i class="bi bi-braces me-2"></i>SQL Query:</p>
+                    <pre class="text-success mb-0"><code>SELECT c.customer_id, c.name, SUM(o.amount) AS total_spent
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+WHERE o.order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND CURDATE()
+GROUP BY c.customer_id, c.name
+HAVING total_spent > 1000;</code></pre>
+                </div>
+                <div class="border rounded p-3 border-secondary bg-dark">
+                    <p class="mb-2 text-muted"><i class="bi bi-chat-right-text me-2"></i>Result:</p>
+                    <p class="response mb-0">
+                        <i class="bi bi-robot text-info me-2"></i>
+                        <span>We found 3 customers who spent over $1000 last month. John Smith spent $1,235.67, Jane Doe spent $1,820.45, and Bob Johnson spent $1,509.22.</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row my-5">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 bg-dark border-secondary">
+            <div class="card-body text-center">
+                <i class="bi bi-magic fs-1 text-primary mb-3"></i>
+                <h3 class="card-title">AI-Powered</h3>
+                <p class="card-text">Using advanced AI to understand your database schema and generate accurate SQL queries based on your natural language questions.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 bg-dark border-secondary">
+            <div class="card-body text-center">
+                <i class="bi bi-shield-lock fs-1 text-primary mb-3"></i>
+                <h3 class="card-title">Secure</h3>
+                <p class="card-text">Your database credentials are encrypted. We only execute the queries that you approve.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 bg-dark border-secondary">
+            <div class="card-body text-center">
+                <i class="bi bi-lightning-charge fs-1 text-primary mb-3"></i>
+                <h3 class="card-title">Instant</h3>
+                <p class="card-text">Get immediate results with natural language explanations. Save time on database queries and focus on what matters.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
